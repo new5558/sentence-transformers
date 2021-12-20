@@ -74,8 +74,34 @@ class EmbeddingSimilarityEvaluator(SentenceEvaluator):
 
         logger.info("EmbeddingSimilarityEvaluator: Evaluating the model on " + self.name + " dataset" + out_txt)
 
-        embeddings1 = model.encode(self.sentences1, batch_size=self.batch_size, show_progress_bar=self.show_progress_bar, convert_to_numpy=True)
-        embeddings2 = model.encode(self.sentences2, batch_size=self.batch_size, show_progress_bar=self.show_progress_bar, convert_to_numpy=True)
+
+        sentences_dict = dict()
+        for sentence in self.sentences1:
+            if sentence not in sentences_dict:
+              sentences_dict[sentence] = ''
+
+        for sentence in self.sentences2:
+            if sentence not in sentences_dict:
+              sentences_dict[sentence] = ''  
+        
+        sentences_list = list(sentences_dict.keys())
+        embeddings = model.encode(sentences_list, batch_size=self.batch_size, show_progress_bar=self.show_progress_bar, convert_to_numpy=True)
+        
+        for i in range(len(embeddings)):
+          embedding = embeddings[i]
+          sentence = sentences_list[i]
+          sentences_dict[sentence] = embedding
+
+        embeddings1 = []
+        for sentence in self.sentences1:
+          embedding = sentences_dict[sentence]
+          embeddings1.append(embedding)
+        
+        embeddings2 = []
+        for sentence in self.sentences2:
+          embedding = sentences_dict[sentence]
+          embeddings2.append(embedding)
+
         labels = self.scores
 
         cosine_scores = 1 - (paired_cosine_distances(embeddings1, embeddings2))
